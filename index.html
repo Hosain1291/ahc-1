@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>철야의 총성 - 중화민국 선거 지도 대시보드</title>
+  <title>철야의 총성</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -58,11 +58,8 @@
 
     /* Leaflet customization */
     .leaflet-container {
-      background: #0b1120 !important;
+      background: transparent !important;
       font-family: inherit;
-    }
-    .dark .leaflet-container {
-      background: #030712 !important;
     }
     .leaflet-popup {
       display: none !important;
@@ -292,7 +289,7 @@
         </div>
 
         <!-- Leaflet GIS Map Canvas -->
-        <div id="gisMapContainer" class="w-full flex-1 relative min-h-[500px] rounded-xl overflow-hidden border border-slate-200/60 dark:border-slate-800 z-10">
+        <div id="gisMapContainer" class="w-full flex-1 relative min-h-[500px] rounded-xl overflow-hidden border border-slate-200/60 dark:border-slate-800 z-10 bg-slate-900 transition-colors">
           <div id="leafletMap" class="w-full h-full min-h-[500px]"></div>
 
           <!-- GIS Loading Indicator -->
@@ -666,23 +663,22 @@
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',
       maxZoom: 13,
       bgColor: '#0b1120',
-      fillOpacity: 0.68
+      fillOpacity: 0.70,
+      borderColor: '#38bdf8'
     },
     light: {
       name: '화이트 배경',
-      url: 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
-      subdomains: 'abcd',
-      maxZoom: 19,
-      bgColor: '#f8fafc',
-      fillOpacity: 0.82
+      url: null, // 순수 단색 화이트 배경 (외부 타일/워터마크 없음)
+      bgColor: '#ffffff',
+      fillOpacity: 0.90,
+      borderColor: '#475569'
     },
     dark: {
       name: '다크 배경',
-      url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
-      subdomains: 'abcd',
-      maxZoom: 19,
-      bgColor: '#020617',
-      fillOpacity: 0.78
+      url: null, // 순수 단색 다크 배경 (외부 타일/워터마크 없음)
+      bgColor: '#090d16',
+      fillOpacity: 0.88,
+      borderColor: '#334155'
     }
   };
 
@@ -1316,22 +1312,31 @@
 
     if (currentTileLayer) {
       mapInstance.removeLayer(currentTileLayer);
+      currentTileLayer = null;
     }
 
     const config = GIS_BASEMAPS[type];
-    const tileOptions = {
-      maxZoom: config.maxZoom,
-      attribution: ''
-    };
-    if (config.subdomains) {
-      tileOptions.subdomains = config.subdomains;
+    
+    // GIS 배경일 때만 실제 타일 레이어 추가
+    if (config.url) {
+      const tileOptions = {
+        maxZoom: config.maxZoom,
+        attribution: ''
+      };
+      if (config.subdomains) {
+        tileOptions.subdomains = config.subdomains;
+      }
+      currentTileLayer = L.tileLayer(config.url, tileOptions).addTo(mapInstance);
     }
 
-    currentTileLayer = L.tileLayer(config.url, tileOptions).addTo(mapInstance);
-
     const mapEl = document.getElementById('leafletMap');
+    const containerEl = document.getElementById('gisMapContainer');
+    
     if (mapEl) {
-      mapEl.style.backgroundColor = config.bgColor;
+      mapEl.style.setProperty('background-color', config.bgColor, 'important');
+    }
+    if (containerEl) {
+      containerEl.style.setProperty('background-color', config.bgColor, 'important');
     }
 
     // Basemap 버튼 활성/비활성 스타일 갱신
@@ -1488,12 +1493,21 @@
     const party = PARTIES[winner] || PARTIES.kmt;
     const baseConfig = GIS_BASEMAPS[currentBasemapType] || GIS_BASEMAPS.gis;
 
+    let strokeColor = '#ffffff';
+    if (currentBasemapType === 'light') {
+      strokeColor = type === 'adm1' ? '#1e293b' : '#64748b';
+    } else if (currentBasemapType === 'dark') {
+      strokeColor = type === 'adm1' ? '#334155' : '#1e293b';
+    } else {
+      strokeColor = type === 'adm1' ? '#ffffff' : '#e2e8f0';
+    }
+
     return {
       fillColor: party.color,
       weight: type === 'adm1' ? 1.5 : 0.7,
       opacity: 0.95,
-      color: currentBasemapType === 'light' ? '#334155' : '#ffffff',
-      fillOpacity: baseConfig.fillOpacity || 0.68
+      color: strokeColor,
+      fillOpacity: baseConfig.fillOpacity || 0.85
     };
   }
 
