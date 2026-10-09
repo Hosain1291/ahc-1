@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>철야의 총성</title>
+  <title>철야의 총성 - 중화민국 선거 지도 대시보드</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -27,8 +27,8 @@
   </script>
 
   <!-- Leaflet GIS Map Library -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <!-- Chart.js & Lucide Icons -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -64,57 +64,18 @@
     .dark .leaflet-container {
       background: #030712 !important;
     }
-    /* Hide Leaflet default popups completely */
     .leaflet-popup {
       display: none !important;
     }
+    .leaflet-control-attribution {
+      display: none !important;
+    }
     .leaflet-tile {
-      filter: saturate(1.1);
+      filter: saturate(1.05);
     }
     .province-leaflet-polygon {
       transition: fill-opacity 0.2s, stroke-width 0.2s;
       cursor: pointer;
-    }
-
-    /* 첨부 사진 스타일의 의석수 캡슐 마커 스타일 */
-    .seat-capsule-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      pointer-events: none;
-      user-select: none;
-    }
-    .seat-capsule-label {
-      color: #ffffff;
-      font-size: 11px;
-      font-weight: 800;
-      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 4px rgba(0,0,0,0.8);
-      margin-bottom: 2px;
-      white-space: nowrap;
-    }
-    .seat-capsule-box {
-      display: inline-flex;
-      align-items: center;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1.5px solid #000000;
-      border-radius: 9999px;
-      padding: 1.5px 3px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
-      gap: 1.5px;
-    }
-    .seat-circle-slot {
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      border: 1px solid rgba(0, 0, 0, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 9px;
-      font-weight: 900;
-      color: #ffffff;
-      text-shadow: 0 1px 1px rgba(0,0,0,0.6);
-      line-height: 1;
     }
   </style>
 </head>
@@ -140,29 +101,44 @@
       </div>
 
       <!-- Election Mode Switcher -->
-      <div class="flex items-center gap-2 bg-slate-200/80 dark:bg-slate-800/80 p-1 rounded-xl text-xs font-semibold">
-        <button id="btnModeLeg" onclick="setElectionMode('legislative')" class="px-3.5 py-1.5 rounded-lg transition-all shadow-sm bg-white dark:bg-blue-600 text-blue-900 dark:text-white flex items-center gap-1.5 font-bold">
+      <div class="flex items-center gap-1.5 bg-slate-200/80 dark:bg-slate-800/80 p-1 rounded-xl text-xs font-semibold">
+        <button id="btnModeLeg" onclick="setElectionMode('legislative')" class="px-3 py-1.5 rounded-lg transition-all shadow-sm bg-white dark:bg-blue-600 text-blue-900 dark:text-white flex items-center gap-1.5 font-bold">
           <i data-lucide="landmark" class="w-3.5 h-3.5"></i>
           <span>입법원 대선구 (ADM1 성급)</span>
         </button>
-        <button id="btnModeNat" onclick="setElectionMode('national')" class="px-3.5 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
+        <button id="btnModeNat" onclick="setElectionMode('national')" class="px-3 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
           <i data-lucide="vote" class="w-3.5 h-3.5"></i>
           <span>국민대회 소선구 (ADM2 시현급)</span>
         </button>
-        <button id="btnModeLoc" onclick="setElectionMode('local')" class="px-3.5 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
+        <button id="btnModeLoc" onclick="setElectionMode('local')" class="px-3 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
           <i data-lucide="users" class="w-3.5 h-3.5"></i>
           <span>지방선거 (성장·성의회)</span>
         </button>
       </div>
 
-      <!-- Quick Actions -->
+      <!-- Quick Actions (TXT Buttons, Settings, Theme) -->
       <div class="flex items-center gap-2">
+        <!-- TXT Export Button -->
+        <button onclick="exportElectionTxt()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-colors shadow-sm" title="선거 결과 및 지지율 TXT 파일로 다운로드">
+          <i data-lucide="download" class="w-3.5 h-3.5 text-blue-500"></i>
+          <span>TXT 저장</span>
+        </button>
+
+        <!-- TXT Import Button (with hidden input) -->
+        <input type="file" id="txtFileInput" accept=".txt" class="hidden" onchange="importElectionTxt(event)">
+        <button onclick="document.getElementById('txtFileInput').click()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-colors shadow-sm" title="저장된 선거 결과 TXT 파일 불러오기">
+          <i data-lucide="upload" class="w-3.5 h-3.5 text-emerald-500"></i>
+          <span>TXT 불러오기</span>
+        </button>
+
+        <!-- Regional Settings Modal Button -->
         <button onclick="toggleSettingsModal(true)" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 transition-colors shadow-sm">
           <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
           <span>권역별 정당 지지율 설정</span>
         </button>
 
-        <button onclick="toggleTheme()" class="p-2 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors" title="다크/라이트 테마 및 GIS 배경지도 전환">
+        <!-- Theme Toggle Button -->
+        <button onclick="toggleTheme()" class="p-2 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors" title="다크/라이트 테마 전환">
           <i id="themeIcon" data-lucide="moon" class="w-4 h-4"></i>
         </button>
       </div>
@@ -184,7 +160,7 @@
         </div>
       </div>
 
-      <!-- Multi-segmented Progress Bar -->
+      <!-- Multi-segmented Progress Bar (0석인 정당은 display: none으로 자동 숨김 처리) -->
       <div class="w-full h-7 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex shadow-inner border border-slate-200/50 dark:border-slate-700/50" id="seatDistributionBar">
         <div id="bar-kmt" class="h-full bg-kmt transition-all duration-700 flex items-center justify-center text-white text-xs font-bold" style="width: 71.9%;">340석 (71.9%)</div>
         <div id="bar-cyp" class="h-full bg-cyp transition-all duration-700 flex items-center justify-center text-slate-950 text-xs font-bold" style="width: 14.0%;">66석 (14.0%)</div>
@@ -259,19 +235,42 @@
       <!-- MAP VIEWER (8 cols) -->
       <section class="lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 flex flex-col relative overflow-hidden min-h-[620px]">
         
-        <!-- Map Controls -->
+        <!-- Map Controls Header -->
         <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2">
             <i data-lucide="map" class="w-4 h-4 text-blue-500"></i>
             <h2 id="mapMainHeading" class="text-sm font-bold text-slate-800 dark:text-slate-100">중화민국 GIS 입법원 선거 지도 (ADM1 35개 성·직할시 대선구)</h2>
           </div>
 
-          <div class="flex items-center gap-2">
-            <!-- Basemap Layer Indicator -->
-            <div class="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-              <span class="flex items-center gap-1.5 px-2 py-0.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-500"></i>GIS 위성·지형 벡터 지도</span>
+          <div class="flex flex-wrap items-center gap-2">
+            
+            <!-- Real-time Search Box -->
+            <div class="relative">
+              <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 border border-slate-200 dark:border-slate-700">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 mr-1.5 shrink-0"></i>
+                <input type="text" id="mapSearchInput" placeholder="성·시·선거구 검색..." oninput="handleMapSearch(this.value)" class="bg-transparent text-xs text-slate-800 dark:text-slate-200 focus:outline-none w-32 sm:w-44">
+              </div>
+              <!-- Search Results Dropdown -->
+              <div id="searchResultsDropdown" class="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 overflow-y-auto hidden z-[1000] text-xs"></div>
+            </div>
+
+            <!-- GIS Basemap Switcher Buttons (GIS배경 / 화이트 / 다크) -->
+            <div class="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-1 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              <button id="btnBasemapGis" onclick="switchGisBasemap('gis')" class="px-2.5 py-1 rounded-md bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400 font-bold transition-all flex items-center gap-1">
+                <i data-lucide="mountain" class="w-3 h-3"></i>
+                <span>GIS 배경</span>
+              </button>
+              <button id="btnBasemapLight" onclick="switchGisBasemap('light')" class="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-1">
+                <i data-lucide="sun" class="w-3 h-3"></i>
+                <span>화이트</span>
+              </button>
+              <button id="btnBasemapDark" onclick="switchGisBasemap('dark')" class="px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-1">
+                <i data-lucide="moon" class="w-3 h-3"></i>
+                <span>다크</span>
+              </button>
             </div>
             
+            <!-- Reset Zoom Button -->
             <button onclick="resetMapCenter()" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100" title="지도 위치 초기화">
               <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
             </button>
@@ -284,11 +283,11 @@
             <span class="font-semibold text-slate-700 dark:text-slate-300">1위 당선 색상:</span>
             <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-kmt inline-block"></span> 국민당</span>
             <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-cyp inline-block"></span> 청년당</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-cdsp inline-block"></span> 민주사회당</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-cdsp inline-block"></span> 민사당</span>
             <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-ind inline-block"></span> 무소속</span>
           </div>
           <div class="text-[11px] text-slate-400">
-            * GIS 배경지도 위 폴리곤을 클릭하면 우측 상황판에 상세 득표율 및 성장 현황이 갱신됩니다.
+            * GIS 배경지도 위 폴리곤을 클릭하면 우측 상황판에 상세 득표율 및 의석이 갱신됩니다.
           </div>
         </div>
 
@@ -328,7 +327,7 @@
           <div class="flex items-start justify-between">
             <div>
               <h4 id="selectedRegionName" class="text-xl font-black text-slate-900 dark:text-white tracking-tight">장쑤성 (江蘇省)</h4>
-              <p id="selectedRegionSub" class="text-xs text-slate-500 dark:text-slate-400">수도 난징 소재 직할 심장부 · 배정 22석</p>
+              <p id="selectedRegionSub" class="text-xs text-slate-500 dark:text-slate-400">수도 난징 소재 직할 심장부 · 배정 38석</p>
             </div>
             <div id="leadingPartyBadge" class="px-2.5 py-1 rounded-full text-xs font-bold text-white bg-kmt shadow-sm">
               중국국민당 1위
@@ -391,26 +390,27 @@
           <div class="mt-2 pt-3 border-t border-slate-100 dark:border-slate-800">
             <div class="flex items-center justify-between mb-2">
               <span id="seatBreakdownTitle" class="text-xs font-bold text-slate-700 dark:text-slate-300">지역별 정당 의석 배분</span>
-              <span id="provTotalSeatsText" class="text-xs text-slate-500 font-mono">총 22석</span>
+              <span id="provTotalSeatsText" class="text-xs text-slate-500 font-mono">총 38석</span>
             </div>
             <div class="h-28 relative">
               <canvas id="provinceAssemblyChart"></canvas>
             </div>
-            <!-- 차트 밑 의석수 숫자 표시 슬롯 -->
-            <div class="grid grid-cols-4 gap-1.5 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-center">
-              <div class="p-1 rounded-lg bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/40">
+            
+            <!-- 차트 밑 의석수 숫자 표시 슬롯 (0석인 정당은 display: none으로 자동 숨김) -->
+            <div id="provSeatSlotsGrid" class="grid grid-cols-4 gap-1.5 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-center">
+              <div id="chart-slot-kmt" class="p-1 rounded-lg bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/40">
                 <div class="text-[10px] text-blue-600 dark:text-blue-400 font-medium">국민당</div>
                 <div id="chart-num-kmt" class="text-xs font-bold text-blue-800 dark:text-blue-200 font-mono">0석</div>
               </div>
-              <div class="p-1 rounded-lg bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40">
+              <div id="chart-slot-cyp" class="p-1 rounded-lg bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40">
                 <div class="text-[10px] text-amber-600 dark:text-amber-400 font-medium">청년당</div>
                 <div id="chart-num-cyp" class="text-xs font-bold text-amber-800 dark:text-amber-200 font-mono">0석</div>
               </div>
-              <div class="p-1 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/40">
+              <div id="chart-slot-cdsp" class="p-1 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/40">
                 <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">민사당</div>
                 <div id="chart-num-cdsp" class="text-xs font-bold text-emerald-800 dark:text-emerald-200 font-mono">0석</div>
               </div>
-              <div class="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <div id="chart-slot-ind" class="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                 <div class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">무소속</div>
                 <div id="chart-num-ind" class="text-xs font-bold text-slate-800 dark:text-slate-200 font-mono">0석</div>
               </div>
@@ -430,7 +430,7 @@
               <div>
                 <div class="flex items-center gap-2">
                   <span id="governorName" class="font-bold text-sm text-slate-900 dark:text-white">장치윈 (張其昀)</span>
-                  <span id="governorRank" class="text-[11px] text-slate-500">육군 소장 전역 / 1급 관선</span>
+                  <span id="governorRank" class="text-[11px] text-slate-500">문관 1급 / 중앙집행위원</span>
                 </div>
                 <p id="governorDesc" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">화중 지역 국민당 조직 장악 및 장개석 총재 직속 지휘권 유지</p>
               </div>
@@ -660,6 +660,34 @@
     ]
   };
 
+  const GIS_BASEMAPS = {
+    gis: {
+      name: 'GIS 지형 배경',
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',
+      maxZoom: 13,
+      bgColor: '#0b1120',
+      fillOpacity: 0.68
+    },
+    light: {
+      name: '화이트 배경',
+      url: 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
+      subdomains: 'abcd',
+      maxZoom: 19,
+      bgColor: '#f8fafc',
+      fillOpacity: 0.82
+    },
+    dark: {
+      name: '다크 배경',
+      url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+      subdomains: 'abcd',
+      maxZoom: 19,
+      bgColor: '#020617',
+      fillOpacity: 0.78
+    }
+  };
+
+  let currentBasemapType = 'gis';
+  let currentTileLayer = null;
   let currentElectionMode = 'legislative'; // 'legislative' | 'national' | 'local'
   let selectedProvinceKey = 'Jiangsu';
   let assemblyChartInstance = null;
@@ -1038,10 +1066,43 @@
     const bCdsp = document.getElementById('bar-cdsp');
     const bInd = document.getElementById('bar-ind');
 
-    if (bKmt) { bKmt.style.width = `${pKmt}%`; bKmt.textContent = `${seats.kmt}석 (${pKmt}%)`; }
-    if (bCyp) { bCyp.style.width = `${pCyp}%`; bCyp.textContent = `${seats.cyp}석 (${pCyp}%)`; }
-    if (bCdsp) { bCdsp.style.width = `${pCdsp}%`; bCdsp.textContent = `${seats.cdsp}석 (${pCdsp}%)`; }
-    if (bInd) { bInd.style.width = `${pInd}%`; bInd.textContent = `${seats.ind}석 (${pInd}%)`; }
+    // 0석이면 전국 의석 바에서 완전히 숨김 (텍스트 겹침 완벽 방지)
+    if (bKmt) {
+      if (seats.kmt <= 0) {
+        bKmt.style.display = 'none';
+      } else {
+        bKmt.style.display = 'flex';
+        bKmt.style.width = `${pKmt}%`;
+        bKmt.textContent = `${seats.kmt}석 (${pKmt}%)`;
+      }
+    }
+    if (bCyp) {
+      if (seats.cyp <= 0) {
+        bCyp.style.display = 'none';
+      } else {
+        bCyp.style.display = 'flex';
+        bCyp.style.width = `${pCyp}%`;
+        bCyp.textContent = `${seats.cyp}석 (${pCyp}%)`;
+      }
+    }
+    if (bCdsp) {
+      if (seats.cdsp <= 0) {
+        bCdsp.style.display = 'none';
+      } else {
+        bCdsp.style.display = 'flex';
+        bCdsp.style.width = `${pCdsp}%`;
+        bCdsp.textContent = `${seats.cdsp}석 (${pCdsp}%)`;
+      }
+    }
+    if (bInd) {
+      if (seats.ind <= 0) {
+        bInd.style.display = 'none';
+      } else {
+        bInd.style.display = 'flex';
+        bInd.style.width = `${pInd}%`;
+        bInd.textContent = `${seats.ind}석 (${pInd}%)`;
+      }
+    }
 
     const sKmt = document.getElementById('stat-seat-kmt');
     const sCyp = document.getElementById('stat-seat-cyp');
@@ -1100,7 +1161,7 @@
       winner: 'kmt',
       pct: { kmt: 60, cyp: 20, cdsp: 12, ind: 8 },
       seats: { kmt: 14, cyp: 5, cdsp: 2, ind: 1 },
-      totalSeats: 22,
+      totalSeats: 38,
       trait: "중화민국 직할 행정관제"
     };
 
@@ -1145,6 +1206,17 @@
     if (cInd) cInd.textContent = `${res.seats.ind}석`;
     if (totSeatsText) totSeatsText.textContent = `총 ${res.totalSeats}석`;
 
+    // 0석인 정당 슬롯 카드는 우측 패널에서 완전 숨김 처리
+    const slotKmt = document.getElementById('chart-slot-kmt');
+    const slotCyp = document.getElementById('chart-slot-cyp');
+    const slotCdsp = document.getElementById('chart-slot-cdsp');
+    const slotInd = document.getElementById('chart-slot-ind');
+
+    if (slotKmt) slotKmt.style.display = res.seats.kmt > 0 ? 'block' : 'none';
+    if (slotCyp) slotCyp.style.display = res.seats.cyp > 0 ? 'block' : 'none';
+    if (slotCdsp) slotCdsp.style.display = res.seats.cdsp > 0 ? 'block' : 'none';
+    if (slotInd) slotInd.style.display = res.seats.ind > 0 ? 'block' : 'none';
+
     updateChart(res.seats);
 
     const govBadge = document.getElementById('governorPartyBadge');
@@ -1177,14 +1249,27 @@
       assemblyChartInstance.destroy();
     }
 
+    const partyDefs = [
+      { key: 'kmt', label: '국민당', color: '#1D4ED8', val: seats.kmt },
+      { key: 'cyp', label: '청년당', color: '#EAB308', val: seats.cyp },
+      { key: 'cdsp', label: '민사당', color: '#16A34A', val: seats.cdsp },
+      { key: 'ind', label: '무소속', color: '#94A3B8', val: seats.ind }
+    ];
+
+    // 0석인 정당은 차트 막대에서 제외
+    const activeParties = partyDefs.filter(p => p.val > 0);
+    const chartLabels = activeParties.length > 0 ? activeParties.map(p => p.label) : ['-'];
+    const chartData = activeParties.length > 0 ? activeParties.map(p => p.val) : [0];
+    const chartColors = activeParties.length > 0 ? activeParties.map(p => p.color) : ['#94A3B8'];
+
     const isDark = document.documentElement.classList.contains('dark');
     assemblyChartInstance = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: ['국민당', '청년당', '민사당', '무소속'],
+        labels: chartLabels,
         datasets: [{
-          data: [seats.kmt, seats.cyp, seats.cdsp, seats.ind],
-          backgroundColor: ['#1D4ED8', '#EAB308', '#16A34A', '#94A3B8'],
+          data: chartData,
+          backgroundColor: chartColors,
           borderRadius: 6
         }]
       },
@@ -1200,7 +1285,11 @@
           y: {
             beginAtZero: true,
             grid: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' },
-            ticks: { color: isDark ? '#94A3B8' : '#475569', font: { size: 10 } }
+            ticks: { 
+              color: isDark ? '#94A3B8' : '#475569', 
+              font: { size: 10 },
+              stepSize: 1
+            }
           }
         }
       }
@@ -1213,16 +1302,53 @@
       zoom: 4,
       minZoom: 3,
       maxZoom: 10,
-      zoomControl: true
+      zoomControl: true,
+      attributionControl: false
     });
 
-    currentTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
-      subdomains: 'abcd',
-      maxZoom: 19
-    }).addTo(mapInstance);
-
+    switchGisBasemap(currentBasemapType);
     loadGeoJsonData();
+  }
+
+  function switchGisBasemap(type) {
+    if (!GIS_BASEMAPS[type] || !mapInstance) return;
+    currentBasemapType = type;
+
+    if (currentTileLayer) {
+      mapInstance.removeLayer(currentTileLayer);
+    }
+
+    const config = GIS_BASEMAPS[type];
+    const tileOptions = {
+      maxZoom: config.maxZoom,
+      attribution: ''
+    };
+    if (config.subdomains) {
+      tileOptions.subdomains = config.subdomains;
+    }
+
+    currentTileLayer = L.tileLayer(config.url, tileOptions).addTo(mapInstance);
+
+    const mapEl = document.getElementById('leafletMap');
+    if (mapEl) {
+      mapEl.style.backgroundColor = config.bgColor;
+    }
+
+    // Basemap 버튼 활성/비활성 스타일 갱신
+    ['gis', 'light', 'dark'].forEach(key => {
+      const btn = document.getElementById(`btnBasemap${key.charAt(0).toUpperCase() + key.slice(1)}`);
+      if (btn) {
+        if (key === type) {
+          btn.className = 'px-2.5 py-1 rounded-md bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400 font-bold transition-all flex items-center gap-1';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-1';
+        }
+      }
+    });
+
+    if (adm1GeojsonLayer || adm2GeojsonLayer) {
+      renderMapLayers();
+    }
   }
 
   function resetMapCenter() {
@@ -1231,72 +1357,121 @@
     }
   }
 
-  function loadGeoJsonData() {
-    const badge = document.getElementById('mapLoadingBadge');
-    const adm1Url = "https://raw.githubusercontent.com/Hosain1291/ahc-1/main/geoBoundaries-CHN-ADM1.geojson";
-    const adm2Url = "https://raw.githubusercontent.com/Hosain1291/ahc-1/main/geoBoundaries-CHN-ADM2.geojson";
+  async function loadGeoJsonData() {
+    const loadingBadge = document.getElementById('mapLoadingBadge');
+    const loadingText = document.getElementById('mapLoadingText');
 
-    Promise.all([
-      fetch(adm1Url).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch(adm2Url).then(r => r.ok ? r.json() : null).catch(() => null)
-    ]).then(([adm1Data, adm2Data]) => {
-      rawAdm1GeoJson = adm1Data || generateFallbackGeoJson();
-      rawAdm2GeoJson = adm2Data || rawAdm1GeoJson;
+    const adm1Url = 'https://raw.githubusercontent.com/Hosain1291/ahc-1/main/geoBoundaries-CHN-ADM1.geojson';
+    const adm2Url = 'https://raw.githubusercontent.com/Hosain1291/ahc-1/main/geoBoundaries-CHN-ADM2.geojson';
 
-      buildAdm1SpatialIndex(rawAdm1GeoJson);
+    try {
+      if (loadingBadge) loadingBadge.style.opacity = '1';
+      if (loadingText) loadingText.textContent = 'ADM1(성급) 지도 로딩 중...';
 
-      if (rawAdm2GeoJson && rawAdm2GeoJson.features) {
-        rawAdm2GeoJson.features.forEach(f => {
-          findProvinceBySpatialInspection(f);
-        });
+      const resp1 = await fetch(adm1Url).catch(() => null);
+      if (resp1 && resp1.ok) {
+        rawAdm1GeoJson = await resp1.json();
+      } else {
+        rawAdm1GeoJson = generateFallbackGeoJson();
       }
 
-      renderMapLayers();
-      if (badge) {
-        badge.classList.add('opacity-0');
-        setTimeout(() => badge.remove(), 600);
-      }
-      calculateElectionResults();
-    }).catch(() => {
-      rawAdm1GeoJson = generateFallbackGeoJson();
-      rawAdm2GeoJson = rawAdm1GeoJson;
       buildAdm1SpatialIndex(rawAdm1GeoJson);
-      renderMapLayers();
-      if (badge) badge.remove();
       calculateElectionResults();
-    });
+      renderMapLayers();
+
+      if (loadingText) loadingText.textContent = 'ADM2(선거구) 로딩 중...';
+      const resp2 = await fetch(adm2Url).catch(() => null);
+      if (resp2 && resp2.ok) {
+        rawAdm2GeoJson = await resp2.json();
+      } else {
+        rawAdm2GeoJson = rawAdm1GeoJson;
+      }
+
+      calculateElectionResults();
+      renderMapLayers();
+
+      if (loadingBadge) {
+        loadingBadge.style.opacity = '0';
+        setTimeout(() => { if (loadingBadge) loadingBadge.style.display = 'none'; }, 400);
+      }
+    } catch (err) {
+      console.error('GeoJSON Load Warning:', err);
+      if (!rawAdm1GeoJson) rawAdm1GeoJson = generateFallbackGeoJson();
+      if (!rawAdm2GeoJson) rawAdm2GeoJson = rawAdm1GeoJson;
+      buildAdm1SpatialIndex(rawAdm1GeoJson);
+      calculateElectionResults();
+      renderMapLayers();
+      if (loadingBadge) loadingBadge.style.display = 'none';
+    }
   }
 
   function renderMapLayers() {
     if (!mapInstance) return;
 
-    if (adm1GeojsonLayer) mapInstance.removeLayer(adm1GeojsonLayer);
-    if (adm2GeojsonLayer) mapInstance.removeLayer(adm2GeojsonLayer);
+    if (!rawAdm1GeoJson) {
+      rawAdm1GeoJson = generateFallbackGeoJson();
+      buildAdm1SpatialIndex(rawAdm1GeoJson);
+    }
 
-    const isAdm2Mode = currentElectionMode === 'national';
+    const mode = currentElectionMode;
 
-    if (!isAdm2Mode) {
-      adm1GeojsonLayer = L.geoJSON(rawAdm1GeoJson, {
-        style: f => getLayerStyle(f, 'adm1'),
-        onEachFeature: (feature, layer) => {
-          layer.on({
-            mouseover: e => onLayerHover(e, feature, 'adm1'),
-            mouseout: e => onLayerOut(e, 'adm1'),
-            click: e => onLayerClick(e, feature, 'adm1')
-          });
+    if (mode === 'national') {
+      if (adm1GeojsonLayer && mapInstance.hasLayer(adm1GeojsonLayer)) {
+        mapInstance.removeLayer(adm1GeojsonLayer);
+      }
+
+      const adm2Data = rawAdm2GeoJson || rawAdm1GeoJson;
+      if (!adm2GeojsonLayer && adm2Data) {
+        adm2GeojsonLayer = L.geoJSON(adm2Data, {
+          style: (feature) => getLayerStyle(feature, 'adm2'),
+          onEachFeature: (feature, layer) => {
+            layer.on({
+              mouseover: (e) => onLayerHover(e, feature, 'adm2'),
+              mouseout: (e) => onLayerOut(e, 'adm2'),
+              click: (e) => onLayerClick(e, feature, 'adm2')
+            });
+          }
+        });
+      }
+
+      if (adm2GeojsonLayer) {
+        adm2GeojsonLayer.eachLayer(layer => {
+          if (layer !== activeSelectedLayer) {
+            layer.setStyle(getLayerStyle(layer.feature, 'adm2'));
+          }
+        });
+        if (!mapInstance.hasLayer(adm2GeojsonLayer)) {
+          adm2GeojsonLayer.addTo(mapInstance);
         }
-      }).addTo(mapInstance);
+      }
     } else {
-      adm2GeojsonLayer = L.geoJSON(rawAdm2GeoJson, {
-        style: f => getLayerStyle(f, 'adm2'),
-        onEachFeature: (feature, layer) => {
-          layer.on({
-            mouseover: e => onLayerHover(e, feature, 'adm2'),
-            mouseout: e => onLayerOut(e, 'adm2'),
-            click: e => onLayerClick(e, feature, 'adm2')
-          });
+      if (adm2GeojsonLayer && mapInstance.hasLayer(adm2GeojsonLayer)) {
+        mapInstance.removeLayer(adm2GeojsonLayer);
+      }
+
+      if (!adm1GeojsonLayer && rawAdm1GeoJson) {
+        adm1GeojsonLayer = L.geoJSON(rawAdm1GeoJson, {
+          style: (feature) => getLayerStyle(feature, 'adm1'),
+          onEachFeature: (feature, layer) => {
+            layer.on({
+              mouseover: (e) => onLayerHover(e, feature, 'adm1'),
+              mouseout: (e) => onLayerOut(e, 'adm1'),
+              click: (e) => onLayerClick(e, feature, 'adm1')
+            });
+          }
+        });
+      }
+
+      if (adm1GeojsonLayer) {
+        adm1GeojsonLayer.eachLayer(layer => {
+          if (layer !== activeSelectedLayer) {
+            layer.setStyle(getLayerStyle(layer.feature, 'adm1'));
+          }
+        });
+        if (!mapInstance.hasLayer(adm1GeojsonLayer)) {
+          adm1GeojsonLayer.addTo(mapInstance);
         }
-      }).addTo(mapInstance);
+      }
     }
   }
 
@@ -1311,12 +1486,14 @@
     }
 
     const party = PARTIES[winner] || PARTIES.kmt;
+    const baseConfig = GIS_BASEMAPS[currentBasemapType] || GIS_BASEMAPS.gis;
+
     return {
       fillColor: party.color,
-      weight: type === 'adm1' ? 1.5 : 0.8,
-      opacity: 1,
-      color: '#ffffff',
-      fillOpacity: 0.72
+      weight: type === 'adm1' ? 1.5 : 0.7,
+      opacity: 0.95,
+      color: currentBasemapType === 'light' ? '#334155' : '#ffffff',
+      fillOpacity: baseConfig.fillOpacity || 0.68
     };
   }
 
@@ -1385,6 +1562,209 @@
       selectedProvinceKey = dRes.provinceKey;
       selectedDistrictId = dRes.id;
       renderDetailedPane(dRes.provinceKey, dRes);
+    }
+  }
+
+  function exportElectionTxt() {
+    try {
+      const timestamp = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+      let content = `==========================================================\n`;
+      content += `철야의 총성 (鐵夜之銃聲) - 중화민국 선거 결과 내보내기\n`;
+      content += `일시: ${timestamp}\n`;
+      content += `선거 모드: ${currentElectionMode === 'legislative' ? '입법원 대선구' : currentElectionMode === 'national' ? '국민대회 소선구' : '지방선거'}\n`;
+      content += `지도 배경: ${GIS_BASEMAPS[currentBasemapType]?.name || currentBasemapType}\n`;
+      content += `==========================================================\n\n`;
+
+      content += `[CONFIG_DATA]\n`;
+      const configJson = JSON.stringify({
+        mode: currentElectionMode,
+        basemap: currentBasemapType,
+        zones: SIX_ZONES
+      }, null, 2);
+      content += configJson + `\n\n`;
+
+      content += `[6대 지리대구 정당 지지율]\n`;
+      Object.keys(SIX_ZONES).forEach(k => {
+        const z = SIX_ZONES[k];
+        content += `- ${z.name}: 국민당 ${z.kmt}% | 청년당 ${z.cyp}% | 민사당 ${z.cdsp}% | 무소속 ${z.ind}%\n`;
+      });
+      content += `\n`;
+
+      content += `[전국 성·직할시 의석 및 1위 현황 요약]\n`;
+      Object.keys(simulatedResults).forEach(pKey => {
+        const r = simulatedResults[pKey];
+        const partyName = PARTIES[r.winner]?.name || r.winner;
+        content += `${r.name}: 1위 ${partyName} (KMT ${r.seats.kmt}석, CYP ${r.seats.cyp}석, CDSP ${r.seats.cdsp}석, IND ${r.seats.ind}석 / 계 ${r.totalSeats}석)\n`;
+      });
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `철야의총성_선거결과_${new Date().toISOString().slice(0,10)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alertBox("TXT 파일 내보내기 도중 오류가 발생했습니다.");
+    }
+  }
+
+  function importElectionTxt(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const text = e.target.result;
+        const configMatch = text.match(/\[CONFIG_DATA\]\s*(\{[\s\S]*?\})\s*(\[|$)/);
+        
+        if (!configMatch || !configMatch[1]) {
+          alertBox("올바른 '철야의 총성' 설정 데이터가 포함된 TXT 파일이 아닙니다.");
+          return;
+        }
+
+        const data = JSON.parse(configMatch[1]);
+        if (data.zones) {
+          Object.keys(data.zones).forEach(k => {
+            if (SIX_ZONES[k]) {
+              SIX_ZONES[k].kmt = Number(data.zones[k].kmt) || 0;
+              SIX_ZONES[k].cyp = Number(data.zones[k].cyp) || 0;
+              SIX_ZONES[k].cdsp = Number(data.zones[k].cdsp) || 0;
+              SIX_ZONES[k].ind = Number(data.zones[k].ind) || 0;
+            }
+          });
+        }
+
+        if (data.basemap && GIS_BASEMAPS[data.basemap]) {
+          switchGisBasemap(data.basemap);
+        }
+
+        if (data.mode) {
+          setElectionMode(data.mode);
+        } else {
+          calculateElectionResults();
+          renderMapLayers();
+        }
+
+        adm2DistrictResults = {};
+        alertBox("선거 판세 및 지지율 데이터를 정상적으로 불러왔습니다!");
+      } catch (err) {
+        console.error(err);
+        alertBox("TXT 파일을 읽는 중 형식이 잘못되었거나 파싱 에러가 발생했습니다.");
+      } finally {
+        event.target.value = '';
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  function alertBox(msg) {
+    const banner = document.getElementById('hoverTracker');
+    if (banner) {
+      const nameEl = document.getElementById('trackerName');
+      const leadEl = document.getElementById('trackerLeadingParty');
+      if (nameEl) nameEl.textContent = '시스템 알림';
+      if (leadEl) {
+        leadEl.textContent = msg;
+        leadEl.style.color = '#3b82f6';
+      }
+      banner.classList.remove('opacity-0');
+      setTimeout(() => banner.classList.add('opacity-0'), 3500);
+    }
+  }
+
+  function handleMapSearch(keyword) {
+    const dropdown = document.getElementById('searchResultsDropdown');
+    if (!dropdown) return;
+
+    const clean = keyword.trim().toLowerCase();
+    if (!clean) {
+      dropdown.classList.add('hidden');
+      dropdown.innerHTML = '';
+      return;
+    }
+
+    const matches = [];
+
+    // ADM1 검사
+    Object.keys(PROVINCE_DATABASE).forEach(pKey => {
+      const p = PROVINCE_DATABASE[pKey];
+      if (p.kr.toLowerCase().includes(clean) || pKey.toLowerCase().includes(clean)) {
+        matches.push({ type: 'adm1', key: pKey, name: p.kr, sub: '성·직할시 대선구' });
+      }
+    });
+
+    // ADM2 검사
+    if (currentElectionMode === 'national' && rawAdm2GeoJson && rawAdm2GeoJson.features) {
+      for (let i = 0; i < rawAdm2GeoJson.features.length; i++) {
+        const f = rawAdm2GeoJson.features[i];
+        const res = getDistrictResult(f);
+        if (res.name.toLowerCase().includes(clean) || res.provinceName.toLowerCase().includes(clean)) {
+          matches.push({ type: 'adm2', feature: f, res: res, name: res.name, sub: `${res.provinceName} 제${res.districtNumber}선거구` });
+          if (matches.length >= 12) break;
+        }
+      }
+    }
+
+    if (matches.length === 0) {
+      dropdown.innerHTML = `<div class="p-2 text-slate-400 text-center">검색 결과 없음</div>`;
+      dropdown.classList.remove('hidden');
+      return;
+    }
+
+    dropdown.innerHTML = matches.slice(0, 10).map((m, idx) => `
+      <div onclick="selectSearchResult(${idx})" class="p-2 hover:bg-blue-50 dark:hover:bg-slate-700 cursor-pointer flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 last:border-none">
+        <div>
+          <span class="font-bold text-slate-800 dark:text-slate-100">${m.name}</span>
+          <span class="text-[10px] text-slate-400 ml-1.5">${m.sub}</span>
+        </div>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+      </div>
+    `).join('');
+
+    dropdown.classList.remove('hidden');
+    window._lastSearchMatches = matches;
+    lucide.createIcons();
+  }
+
+  function selectSearchResult(index) {
+    const dropdown = document.getElementById('searchResultsDropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+
+    const item = (window._lastSearchMatches || [])[index];
+    if (!item) return;
+
+    if (item.type === 'adm1') {
+      selectedProvinceKey = item.key;
+      selectedDistrictId = null;
+      renderDetailedPane(item.key);
+
+      // 지도 포커스 이동
+      if (adm1GeojsonLayer) {
+        adm1GeojsonLayer.eachLayer(layer => {
+          if (parseAdm1KeyFromFeature(layer.feature) === item.key) {
+            highlightLayer(layer);
+            mapInstance.fitBounds(layer.getBounds(), { maxZoom: 6, padding: [20, 20] });
+          }
+        });
+      }
+    } else {
+      selectedProvinceKey = item.res.provinceKey;
+      selectedDistrictId = item.res.id;
+      renderDetailedPane(item.res.provinceKey, item.res);
+
+      if (adm2GeojsonLayer) {
+        adm2GeojsonLayer.eachLayer(layer => {
+          if (getDistrictResult(layer.feature).id === item.res.id) {
+            highlightLayer(layer);
+            mapInstance.fitBounds(layer.getBounds(), { maxZoom: 8, padding: [20, 20] });
+          }
+        });
+      }
     }
   }
 
@@ -1580,6 +1960,14 @@
     window.addEventListener('resize', () => {
       if (mapInstance) {
         mapInstance.invalidateSize();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('searchResultsDropdown');
+      const searchInput = document.getElementById('mapSearchInput');
+      if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+        dropdown.classList.add('hidden');
       }
     });
   });
